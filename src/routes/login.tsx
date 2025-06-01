@@ -1,4 +1,4 @@
-import { Container, Image, Input, Text } from "@chakra-ui/react"
+import { Container, Image, Input, Select, Text } from "@chakra-ui/react"
 import {
   Link as RouterLink,
   createFileRoute,
@@ -27,11 +27,17 @@ export const Route = createFileRoute("/login")({
   },
 })
 
+const devUsers = [
+  { label: "Admin", email: "admin@fastapi.com", password: "changethis" },
+  { label: "User", email: "user@fastapi.com", password: "changethis" },
+]
+
 function Login() {
   const { loginMutation, error, resetError } = useAuth()
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<AccessToken>({
     mode: "onBlur",
@@ -51,6 +57,17 @@ function Login() {
       await loginMutation.mutateAsync(data)
     } catch {
       // error is handled by useAuth hook
+    }
+  }
+
+  const handleDevLogin = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedUser = devUsers.find(
+      (user) => user.label === event.target.value,
+    )
+    if (selectedUser) {
+      setValue("username", selectedUser.email)
+      setValue("password", selectedUser.password)
+      handleSubmit(onSubmit)()
     }
   }
 
@@ -74,35 +91,48 @@ function Login() {
           alignSelf="center"
           mb={4}
         />
-        <Field
-          invalid={!!errors.username}
-          errorText={errors.username?.message || !!error}
-        >
-          <InputGroup w="100%" startElement={<FiMail />}>
-            <Input
-              id="username"
-              {...register("username", {
-                required: "Username is required",
-                pattern: emailPattern,
-              })}
-              placeholder="Email"
-              type="email"
+
+        {import.meta.env.DEV ? (
+          <Select onChange={handleDevLogin} placeholder="Select user to login as">
+            {devUsers.map((user) => (
+              <option key={user.email} value={user.label}>
+                {user.label}
+              </option>
+            ))}
+          </Select>
+        ) : (
+          <>
+            <Field
+              invalid={!!errors.username}
+              errorText={errors.username?.message || !!error}
+            >
+              <InputGroup w="100%" startElement={<FiMail />}>
+                <Input
+                  id="username"
+                  {...register("username", {
+                    required: "Username is required",
+                    pattern: emailPattern,
+                  })}
+                  placeholder="Email"
+                  type="email"
+                />
+              </InputGroup>
+            </Field>
+            <PasswordInput
+              type="password"
+              startElement={<FiLock />}
+              {...register("password", passwordRules())}
+              placeholder="Password"
+              errors={errors}
             />
-          </InputGroup>
-        </Field>
-        <PasswordInput
-          type="password"
-          startElement={<FiLock />}
-          {...register("password", passwordRules())}
-          placeholder="Password"
-          errors={errors}
-        />
-        <RouterLink to="/recover-password" className="main-link">
-          Forgot Password?
-        </RouterLink>
-        <Button variant="solid" type="submit" loading={isSubmitting} size="md">
-          Log In
-        </Button>
+            <RouterLink to="/recover-password" className="main-link">
+              Forgot Password?
+            </RouterLink>
+            <Button variant="solid" type="submit" loading={isSubmitting} size="md">
+              Log In
+            </Button>
+          </>
+        )}
         <Text>
           Don't have an account?{" "}
           <RouterLink to="/signup" className="main-link">
