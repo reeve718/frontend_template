@@ -1,4 +1,4 @@
-import { Container, Image, Input, Select, Text } from "@chakra-ui/react"
+import { Container, Image, Input, Text } from "@chakra-ui/react"
 import {
   Link as RouterLink,
   createFileRoute,
@@ -93,13 +93,18 @@ function Login() {
         />
 
         {import.meta.env.DEV ? (
-          <Select onChange={handleDevLogin} placeholder="Select user to login as">
+          <Input
+            as="select"
+            onChange={handleDevLogin}
+            placeholder="Select user to login as"
+          >
+            <option value="">Select user to login as</option>
             {devUsers.map((user) => (
               <option key={user.email} value={user.label}>
                 {user.label}
               </option>
             ))}
-          </Select>
+          </Input>
         ) : (
           <>
             <Field
